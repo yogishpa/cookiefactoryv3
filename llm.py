@@ -37,7 +37,7 @@ model_kwargs = {
         "temperature": 0.1,
         "top_p": 0.9,
     },
-    "anthropic.claude-instant-v1": {
+    "amazon.nova-premier-v1:0": {
         "maxTokenCount": 4096,
         "temperature": 0.1,
         "top_p": 0.9,
