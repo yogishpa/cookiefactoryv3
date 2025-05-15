@@ -75,12 +75,12 @@ async def start():
 
 
 @cl.on_message
-async def main(message: cl.Message, context: cl.Context):
+async def main(message: cl.Message):
   llm_chain = cl.user_session.get("chain")
 
-  res = await llm_chain.acall(
-    message,
-    callbacks=[cl.AsyncLangchainCallbackHandler()])
+  res = llm_chain(
+    message.content,
+    callbacks=[cl.LangchainCallbackHandler()])
 
   await cl.Message(content=res["text"]).send()
 
