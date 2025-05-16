@@ -5,6 +5,8 @@ import boto3
 
 from langchain.llms.bedrock import Bedrock
 from langchain.embeddings.bedrock import BedrockEmbeddings
+from langchain_aws import ChatBedrockConverse
+from langchain_core.messages import HumanMessage
 
 from botocore.config import Config
 
@@ -13,13 +15,7 @@ from .env import get_bedrock_region
 available_models = [
     "amazon.titan-tg1-large",
     "amazon.nova-premier-v1:0",
-    "amazon.nova-micro-v1:0",
-    "amazon.nova-pro-v1:0",
-    "amazon.titan-text-premier-v1:0",
-    "amazon.titan-embed-text-v2:0",
-    "amazon.titan-text-express-v1",
-    "amazon.titan-text-lite-v1",
-    "amazon.titan-embed-text-v1"
+    "amazon.nova-pro-v1:0"
 ]
 
 # the current model used for text generation
@@ -33,14 +29,20 @@ model_kwargs = {
         "maxTokenCount": 4096,
     },
     "amazon.nova-pro-v1:0": {
-        "maxTokenCount": 4096,
+        "messages": [
+            {"role": "user", "content": ""}  # This will be replaced with actual content
+        ],
         "temperature": 0.1,
-        "top_p": 0.9,
+        "topP": 0.9,
+        "maxTokens": 4096,
     },
     "amazon.nova-premier-v1:0": {
-        "maxTokenCount": 4096,
+        "messages": [
+            {"role": "user", "content": ""}  # This will be replaced with actual content
+        ],
         "temperature": 0.1,
-        "top_p": 0.9,
+        "topP": 0.9,
+        "maxTokens": 4096,
     },
 }
 
@@ -79,22 +81,57 @@ bedrock_runtime = boto3.client('bedrock-runtime', get_bedrock_region(), config=C
 response = bedrock.list_foundation_models()
 print(response.get('modelSummaries')) 
 
-def get_bedrock_text():
-    llm = Bedrock(model_id=text_model_id, client=bedrock_runtime)
-    llm.model_kwargs = model_kwargs.get(text_model_id, {})
-    return llm
-
-def get_bedrock_text_v2():
-    llm = Bedrock(model_id=text_v2_model_id, client=bedrock_runtime)
-    llm.model_kwargs = model_kwargs.get(text_v2_model_id, {})
-    return llm
-
 def get_bedrock_embedding():
     embeddings = BedrockEmbeddings(
         model_id=embedding_model_id,
         client=bedrock_runtime
     )
     return embeddings
+
+def get_bedrock_text(model_id=None, temperature=0.7):
+    """
+    Creates a ChatBedrockConverse instance for chat-based interactions with Bedrock models.
+    
+    Args:
+        model_id (str, optional): The model ID to use. Defaults to text_model_id if None.
+        temperature (float, optional): The temperature setting. Defaults to 0.7.
+        
+    Returns:
+        ChatBedrockConverse: A configured chat model instance.
+    """
+    if model_id is None:
+        model_id = text_v2_model_id
+        
+    llm = ChatBedrockConverse(
+        model_id=model_id,
+        client=bedrock_runtime,
+        temperature=temperature
+    )
+    
+    return llm
+
+def get_bedrock_text(model_id=None, temperature=0.7):
+    """
+    Creates a ChatBedrockConverse instance for chat-based interactions with Bedrock models.
+    
+    Args:
+        model_id (str, optional): The model ID to use. Defaults to text_model_id if None.
+        temperature (float, optional): The temperature setting. Defaults to 0.7.
+        
+    Returns:
+        ChatBedrockConverse: A configured chat model instance.
+    """
+    if model_id is None:
+        model_id = text_model_id
+        
+    llm = ChatBedrockConverse(
+        model_id=model_id,
+        client=bedrock_runtime,
+        temperature=temperature
+    )
+    
+    return llm
+
 
 def get_processed_prompt_template(template):
     if text_model_id in prompt_template_procs:
